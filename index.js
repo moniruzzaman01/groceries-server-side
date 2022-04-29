@@ -28,6 +28,13 @@ async function run() {
       const items = await cursor.toArray();
       res.send(items);
     });
+    //add data to database
+    app.post("/inventory-items", async (req, res) => {
+      const product = req.body;
+      const result = await itemsCollection.insertOne(product);
+      // console.log(product);
+      res.send(result);
+    });
 
     //   ---------------------
   } finally {
