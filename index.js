@@ -1,6 +1,11 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const {
+  MongoClient,
+  ServerApiVersion,
+  ObjectId,
+  ConnectionPoolClosedEvent,
+} = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -54,6 +59,26 @@ async function run() {
       const result = await itemsCollection.findOne(query);
       // console.log("id", id);
       res.send(result);
+
+      //Update Data
+      app.put("/update", async (req, res) => {
+        const item = req.body;
+        const id = req.body._id;
+        const query = { _id: ObjectId(id) };
+        const updatedDoc = {
+          $set: {
+            quantity: item.quantity,
+          },
+        };
+        const options = { upsert: true };
+        const result = await itemsCollection.updateOne(
+          query,
+          updatedDoc,
+          options
+        );
+        // console.log("it's called");
+        res.send(result);
+      });
     });
 
     //   ---------------------
