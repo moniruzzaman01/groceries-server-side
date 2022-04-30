@@ -79,6 +79,15 @@ async function run() {
         // console.log("it's called");
         res.send(result);
       });
+
+      //Delete data
+      app.delete("/deleteById/:id", async (req, res) => {
+        const id = req.params.id;
+        // console.log(id);
+        const query = { _id: ObjectId(id) };
+        const result = await itemsCollection.deleteOne(query);
+        res.send(result);
+      });
     });
 
     //   ---------------------
