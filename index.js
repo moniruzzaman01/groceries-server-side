@@ -28,12 +28,22 @@ async function run() {
       const items = await cursor.toArray();
       res.send(items);
     });
+
     //add data to database
     app.post("/inventory-items", async (req, res) => {
       const product = req.body;
       const result = await itemsCollection.insertOne(product);
       // console.log(product);
       res.send(result);
+    });
+
+    //get data filtered by email
+    app.post("/itemsByEmail", async (req, res) => {
+      const email = req.body;
+      console.log(email);
+      const cursor = itemsCollection.find(email);
+      const items = await cursor.toArray();
+      res.send(items);
     });
 
     //   ---------------------
