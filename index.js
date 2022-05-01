@@ -26,6 +26,7 @@ async function run() {
   try {
     await client.connect();
     const itemsCollection = client.db("groceries").collection("inventoryItems");
+    const sellerCollection = client.db("groceries").collection("sellers");
 
     //get all data
     app.get("/inventory-items", async (req, res) => {
@@ -88,6 +89,13 @@ async function run() {
         const result = await itemsCollection.deleteOne(query);
         res.send(result);
       });
+    });
+
+    //get all sellers
+    app.get("/sellers", async (req, res) => {
+      const cursor = sellerCollection.find({});
+      const items = await cursor.toArray();
+      res.send(items);
     });
 
     //   ---------------------
