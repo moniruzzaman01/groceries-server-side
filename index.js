@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 const {
   MongoClient,
   ServerApiVersion,
@@ -14,8 +15,17 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-//mongodb connection
+function JWTverify(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res
+      .status(401)
+      .send({ message: "Unauthorized access (returned from jetverify)" });
+  }
+  next();
+}
 
+//mongodb connection
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.6fhmb.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
@@ -27,6 +37,15 @@ async function run() {
     await client.connect();
     const itemsCollection = client.db("groceries").collection("inventoryItems");
     const sellerCollection = client.db("groceries").collection("sellers");
+
+    //Auth
+    app.post("/login", (req, res) => {
+      const email = req.body;
+      const accessToken = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1d",
+      });
+      res.send({ accessToken });
+    });
 
     //get all data
     app.get("/inventory-items", async (req, res) => {
@@ -44,10 +63,9 @@ async function run() {
     });
 
     //get data filtered by email
-    app.post("/itemsByEmail", async (req, res) => {
-      const email = req.body;
-      console.log(email);
-      const cursor = itemsCollection.find(email);
+    app.get("/itemsByEmail", JWTverify, async (req, res) => {
+      const email = req.query.email;
+      const cursor = itemsCollection.find({ userEmail: email });
       const items = await cursor.toArray();
       res.send(items);
     });
