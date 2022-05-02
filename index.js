@@ -27,7 +27,7 @@ function JWTverify(req, res, next) {
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
     if (error) {
       console.log("sala error paisi");
-      return res.status(401).send("Unauthorized access");
+      return res.status(403).send("Forbidden access");
     }
     req.decoded = decoded;
     next();
@@ -80,7 +80,7 @@ async function run() {
         const items = await cursor.toArray();
         res.send(items);
       } else {
-        console.log("not matched");
+        return res.status(403).send("Forbidden access");
       }
     });
 
