@@ -20,9 +20,18 @@ function JWTverify(req, res, next) {
   if (!authHeader) {
     return res
       .status(401)
-      .send({ message: "Unauthorized access (returned from jetverify)" });
+      .send({ message: "Unauthorized access (returned from jwtverify)" });
   }
-  next();
+
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
+    if (error) {
+      console.log("sala error paisi");
+      return res.status(401).send("Unauthorized access");
+    }
+    req.decoded = decoded;
+    next();
+  });
 }
 
 //mongodb connection
@@ -58,25 +67,28 @@ async function run() {
     app.post("/inventory-items", async (req, res) => {
       const product = req.body;
       const result = await itemsCollection.insertOne(product);
-      // console.log(product);
       res.send(result);
     });
 
     //get data filtered by email
     app.get("/itemsByEmail", JWTverify, async (req, res) => {
+      const tokenEmail = req.decoded.email;
       const email = req.query.email;
-      const cursor = itemsCollection.find({ userEmail: email });
-      const items = await cursor.toArray();
-      res.send(items);
+      if (tokenEmail === email) {
+        console.log("email matched");
+        const cursor = itemsCollection.find({ userEmail: email });
+        const items = await cursor.toArray();
+        res.send(items);
+      } else {
+        console.log("not matched");
+      }
     });
 
     //get single data filtered by ID
     app.get("/itemsById/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
-      // console.log(query);
       const result = await itemsCollection.findOne(query);
-      // console.log("id", id);
       res.send(result);
 
       //Update Data
@@ -95,14 +107,12 @@ async function run() {
           updatedDoc,
           options
         );
-        // console.log("it's called");
         res.send(result);
       });
 
       //Delete data
       app.delete("/deleteById/:id", async (req, res) => {
         const id = req.params.id;
-        // console.log(id);
         const query = { _id: ObjectId(id) };
         const result = await itemsCollection.deleteOne(query);
         res.send(result);
