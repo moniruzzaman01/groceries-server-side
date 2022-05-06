@@ -26,7 +26,6 @@ function JWTverify(req, res, next) {
   const token = authHeader.split(" ")[1];
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
     if (error) {
-      console.log("sala error paisi");
       return res.status(403).send("Forbidden access");
     }
     req.decoded = decoded;
@@ -74,13 +73,13 @@ async function run() {
     app.get("/itemsByEmail", JWTverify, async (req, res) => {
       const tokenEmail = req.decoded.email;
       const email = req.query.email;
+
       if (tokenEmail === email) {
-        console.log("email matched");
         const cursor = itemsCollection.find({ userEmail: email });
         const items = await cursor.toArray();
         res.send(items);
       } else {
-        return res.status(403).send("Forbidden access");
+        res.status(403).send("Forbidden access");
       }
     });
 
