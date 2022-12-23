@@ -9,7 +9,7 @@ const {
 } = require("mongodb");
 require("dotenv").config();
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 
 //middle ware
 app.use(cors());
